@@ -9,22 +9,32 @@ The last 2,000 patients are reserved as a hidden test set to evaluate model gene
 
 ---
 
-## Data Preprocessing & Feature Engineering  
+## Data Preprocessing  
 - **Static variables**: kept as provided.  
 - **Time-varying variables**: summarized using maximum value across 48 hours.  
-- **Missing values**: imputed with `NaN` (later handled by model/median).  
+- **Missing values**: imputed with `NaN` (later handled by mean).  
 - **Normalization**: all features scaled to `[0,1]`.  
-- **Categorical variables**: one-hot encoded.  
+- **Categorical variables**: one-hot encoded.
+  
+---
 
-These steps transformed raw ICU records into structured feature vectors suitable for model training.  
+## Feature Extraction  
+In addition to the main project, I also focused on improving feature extraction:  
 
+1. **Numerical variables**: kept as floats; missing data imputed with `NaN`, replaced with mean later.  
+2. **Categorical variables**: hot encoded.
+3. **ICU categories**: extended feature vectors to cover each ICU type.  
+4. **Time-varying variables**: summarized using **max, min, mean, std**.  
+5. **Subset features**: split the 48-hour window into two 24-hour windows to capture temporal trends.  
+   
 ---
 
 ## Models  
 ### Logistic Regression  
 - Explored **ℓ1 (lasso)** and **ℓ2 (ridge)** penalties.  
-- Hyperparameter tuning with **five-fold cross-validation**.  
-- **Weighted logistic regression** to handle class imbalance.  
+- Hyperparameter tuning with **cross-validation**.  
+- **Weighted logistic regression** to handle class imbalance.
+- **Hyperparameter tuning**: searched across multiple `C` values and both ℓ1 and ℓ2 penalties.   
 
 ### Kernel Ridge Regression (RBF Kernel)  
 - Captured **non-linear patterns** beyond linear models.  
@@ -37,25 +47,15 @@ These steps transformed raw ICU records into structured feature vectors suitable
 - **Bootstrapping** to compute 95% confidence intervals.  
 - Plotted **ROC/PR curves** to analyze sensitivity–specificity trade-offs.  
 - Key predictors:  
-  - **Cancer Type** — strongest driver, survival varies widely across types.  
-  - **FGA (Fraction Genome Altered)** — higher burden → worse survival.  
-  - **logTMB (Tumor Mutation Burden)** — higher burden → worse survival.  
-  - **Cohort (Main vs IO patients)** — modifies TMB effect.  
-  - **Sex** — small but consistent differences.  
-  - **Purity** — weak, used as control.  
+- **Age** — important demographic predictor, older patients tend to have worse outcomes.  
+- **Gender** — potential biological differences in survival.  
+- **ICUType** — type of ICU (e.g., medical, surgical) reflects baseline severity and case mix.  
+- **Weight & Height** — baseline physiological status.  
+- **Vital signs (HR, MAP, RespRate, Temp, SaO2, etc.)** — indicators of acute physiological state.  
+- **Laboratory values (Creatinine, BUN, Lactate, Glucose, WBC, Platelets, etc.)** — capture organ function and metabolic status, key for survival prediction.  
+- **Other markers (pH, PaO2, PaCO2, Troponins, etc.)** — reflect critical illness severity.  
 
----
-
-## Challenge Component  
-In addition to the main project, I also completed a **challenge task** focused on improving feature extraction:  
-
-1. **Numerical variables**: kept as floats; missing data imputed with `NaN`.  
-2. **Categorical variables**: one-hot encoded. Example: gender split into `[1,0]` for male and `[0,1]` for female.  
-3. **ICU categories**: extended feature vectors to cover each ICU type.  
-4. **Time-varying variables**: summarized using **max, min, mean, std**.  
-5. **Subset features**: split the 48-hour window into two 24-hour windows to capture temporal trends.  
-6. **Hyperparameter tuning**: searched across multiple `C` values and both ℓ1 and ℓ2 penalties.  
-7. **Bootstrap**: implemented for performance evaluation.  
+ 
 
 **Results on challenge data**:  
 - AUROC = **0.8571**  
